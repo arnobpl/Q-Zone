@@ -1,0 +1,103 @@
+
++ UserAuthentication {static}
+	+ LoggedInUser {read} : User    // this variable is checked in other models
+	+ Login(username, password) : boolean
+	+ SignUp(username, password, email) : boolean
+	+ IsLoggedIn() : boolean
+	+ Logout() : void
+	+ DeleteAccount() : boolean
+
++ User(username, password)    // association with 'LoggedInUser'
+	+ Username {read} : string
+	- Password : string
+	+ Email {read, write} : string
+	+ ChangePassword(currentPassword, newPassword) : boolean
+	+ Name {read; write} : string
+
++ TopicBank {static}    // association with 'LoggedInUser'
+	+ AddTopic(topicName) : Topic
+	+ ViewTopics(searchTopic = "", minimumTotalQuestions = 0, maximumTotalQuestions = -1) : List<Topic>
+
++ Topic(topicName) or (topicID)    // association with 'LoggedInUser'; 1st constructor only called by AddTopic(topicName);
+	+ TopicID {read} : integer
+	+ Owner {read} : User
+	+ TotalQuestions {read} : integer
+	+ TopicName {read; write} : string
+	+ ViewQuestions(phrase = "", difficulty = none) : List<Question>
+	+ IsLoggedInUserOwner() : boolean
+	+ Delete() : boolean
+	
++ QuestionBank {static}    // association with 'LoggedInUser'
+	+ AddQuestion(topic) : Question
+	+ ViewQuestions(searchTopic = "", phrase = "", difficulty = none) : List<Question>
+
++ Question(topic) or (questionID)    // association with 'LoggedInUser'; 1st constructor only called by AddQuestion(topic);
+	+ QuestionID {read} : integer
+	+ Owner {read} : User
+	+ Topic {read} : Topic
+	+ QuestionString {read; write} : string
+	+ CorrectAnswer {read; write} : string
+	+ Difficulty {read; write} : Difficulty
+	+ ViewAllAnswerOptions() : List<string>
+	+ ViewIncorrectAnswerOption(index) : string
+	+ GetOptionID(optionString) : integer    // it returns database optionID
+	+ GetAnswerOptionByOptionID(optionID) : string
+	+ EditIncorrectOptions(option1 = "", option2 = "", option3 = "", option4 = "") : boolean
+	+ EditIncorrectOption(index, answerOption) : boolean
+	+ IsLoggedInUserOwner() : boolean
+	+ Delete() : boolean
+
++ QuizBank {static}    // association with 'LoggedInUser'
+	+ AddQuiz(topic) : Quiz
+	+ ViewCreatedQuizzes(topic = null, searchName = "", beginDateTime = null, endDateTime = null, minimumDuration = 0, maximumDuration = -1) : List<Quiz>
+
++ Quiz(topic) or (quizID)    // association with 'LoggedInUser'; 1st constructor only called by AddQuiz(topic);
+	+ QuizID {read} : integer
+	+ Owner {read} : User
+	+ Topic {read} : Topic
+	+ TotalParticipants {read} : integer
+	+ TotalQuestions {read} : integer
+	+ TotalMarks {read} : integer
+	+ AverageMarks {read} : integer
+	+ QuizName {read; write} : string
+	+ DateTime {read; write} : DateTime
+	+ Duration {read; write} : integer
+	+ IsPublic {read; write} : boolean
+	+ GetRandomQuestions(numberOfQuestions, phrase = "", difficulty = none) : List<Question>
+	+ AddQuestion(question) : boolean
+	+ AddQuestions(questions) : boolean
+	+ DeleteQuestion(question) : boolean
+	+ DeleteQuestions(questions) : boolean
+	+ DeleteAllQuestions() : boolean
+	+ ReorderQuestion(currentOrder, newOrder) : boolean
+	+ ViewQuestions() : List<Question>
+	+ IsQuizStarted() : boolean
+	+ IsQuizFinished() : boolean
+	+ IsQuizRunning() : boolean
+	+ GetSpentTime() : integer
+	+ GetRemainingTime() : integer
+	+ IsLoggedInUserOwner() : boolean
+	+ Delete() : boolean
+
++ AnswerSheet(quiz)    // association with 'LoggedInUser'
+	+ AnswerSheetID {read} : integer
+	+ Owner {read} : User
+	+ Quiz {read} : Quiz
+	+ IsSubmitted {read} : boolean    // this is a property rather than a method, because there is no association with other properties such as 'LoggedInUser' for this item;
+	+ GiveAnswer(question, optionString) : boolean
+	+ ShowGivenAnswer(question) : optionString
+	+ Submit() : boolean    // there is no auto-submit when participant fails to explicitly call this method in time; UI should show a warning while quiz is almost over;
+	+ IsLoggedInUserOwner() : boolean
+
++ Result(quiz) or (resultID)    // association with 'LoggedInUser'; 1st constructor only for viewing own result;
+	+ ResultID {read} : integer
+	+ Owner {read} : User
+	+ Quiz {read} : Quiz
+	+ ObtainedMarks {read} : integer
+	+ PercentageOfObtainedMarks {read} : double
+	+ IsLoggedInUserOwner() : boolean
+
++ RankList {static}    // association with 'LoggedInUser'; There is no class for individual rank list, because it is derived from the database; Actually it is a list of 'Result' objects;
+	+ ViewStartedQuizzes(topic = null, searchName = "", beginDateTime = null, endDateTime = null, minimumDuration = 0, maximumDuration = -1) : List<Quiz>
+	+ ViewParticipatedQuizzes(topic = null, searchName = "", beginDateTime = null, endDateTime = null, minimumDuration = 0, maximumDuration = -1) : List<Quiz>
+	+ ViewRankList(quiz) : List<Result>    // UI should have highlighting if calling 'Result' object's 'IsLoggedInUserOwner()' method returns true
